@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::ffi::{CString, CStr};
 
 pub fn ls(dir: &'static str) {
@@ -14,5 +15,7 @@ pub fn ls(dir: &'static str) {
             println!("{}", cname.to_str().unwrap());
             dirp = libc::readdir(dp);
         }
+
+        libc::closedir(dp);
     }
 }

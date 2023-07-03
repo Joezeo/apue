@@ -1,9 +1,10 @@
 #![cfg(unix)]
-mod chatper_1;
+mod chapter_1;
+mod chapter_2;
 mod apue;
 
 fn main() {
-    chatper_1::main();
+    chapter_1::main();
 }
 
 #[cfg(not(unix))]

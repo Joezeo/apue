@@ -1,6 +1,7 @@
 #![cfg(unix)]
 mod chapter_1;
 mod chapter_2;
+mod chapter_3;
 mod apue;
 
 fn main() {

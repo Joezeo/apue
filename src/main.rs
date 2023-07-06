@@ -5,7 +5,8 @@ mod chapter_3;
 mod apue;
 
 fn main() {
-    chapter_1::main();
+    // chapter_1::main();
+    chapter_3::main();
 }
 
 #[cfg(not(unix))]

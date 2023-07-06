@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 pub mod getpid;
 pub mod ls;
 pub mod simple_shell;

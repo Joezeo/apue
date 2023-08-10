@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use libc::{
     c_char, c_int, mode_t, size_t, sysconf, S_IRGRP, S_IROTH, S_IRUSR, S_IWUSR, S_IXGRP, S_IXOTH,
-    S_IXUSR,
+    S_IXUSR, F_GETFL, fcntl, F_SETFL,
 };
 use std::{
     ffi::CString,
@@ -16,6 +16,18 @@ pub const FILE_MODE: mode_t = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 /// Default permissions for new firectories.
 pub const DIR_MODE: mode_t = FILE_MODE | S_IXUSR | S_IXGRP | S_IXOTH;
 
+#[inline]
+pub fn errno() -> *mut i32 {
+    #[cfg(target_os = "macos")]
+    unsafe {
+        libc::__error()
+    }
+    #[cfg(not(target_os = "macos"))]
+    unsafe {
+        libc::__errno_location()
+    }
+}
+
 pub fn path_alloc(sizep: &mut size_t) -> *mut c_char {
     const PATH_MAX_GUESS: i32 = 1024;
 
@@ -27,11 +39,11 @@ pub fn path_alloc(sizep: &mut size_t) -> *mut c_char {
 
     unsafe {
         if PATHMAX.load(Ordering::Relaxed) == 0 {
-            *libc::__error() = 0;
+            *errno() = 0;
             let path = CString::new("/").unwrap();
             let pathmax = libc::pathconf(path.as_ptr(), libc::_PC_PATH_MAX);
             if pathmax < 0 {
-                if *libc::__error() == 0 {
+                if *errno() == 0 {
                     PATHMAX.store(PATH_MAX_GUESS, Ordering::Release);
                 } else {
                     panic!("pathconf error for _PC_PATH_MAX")
@@ -64,10 +76,10 @@ pub fn open_max() -> i64 {
     const OPEN_MAX_GUESS: i64 = 256;
     unsafe {
         if OPENMAX.load(Ordering::Acquire) == 0 {
-            *libc::__error() = 0;
+            *errno() = 0;
             let openmax = sysconf(libc::_SC_OPEN_MAX);
             if openmax < 0 {
-                if *libc::__error() == 0 {
+                if *errno() == 0 {
                     OPENMAX.store(OPEN_MAX_GUESS, Ordering::Release);
                 } else {
                     panic!("sysconf error for _SC_OPEN_MAX")
@@ -78,6 +90,21 @@ pub fn open_max() -> i64 {
         }
 
         return OPENMAX.load(Ordering::Acquire)
+    }
+}
+
+pub fn set_fl(fd: i32, flags: i32) {
+    unsafe {
+        let mut val = fcntl(fd, F_GETFL);
+        if val < 0 {
+            println!("fcntl `F_GETFL` error.");
+            return
+        }
+        val |= flags;
+
+        if fcntl(fd, F_SETFL, val) < 0 {
+            println!("fcntl `F_SETFL` error.");
+        }
     }
 }
 

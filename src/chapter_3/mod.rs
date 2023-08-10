@@ -3,16 +3,20 @@ mod file_copy;
 mod hole_file;
 mod nohole_file;
 mod is_seekable;
+mod print_file_flag;
+mod shared_file_table;
 
 use std::ffi::CString;
-use crate::apue::FILE_MODE;
+use libc::{O_RDWR, O_APPEND, O_SYNC};
+
+use crate::apue::{FILE_MODE, errno};
 
 pub fn main() {
     unsafe {
         // open:
         let path = CString::new("test.file").unwrap();
         let fd = libc::open(path.as_ptr(), libc::O_RDWR);
-        if *libc::__error() != 0 {
+        if *errno() != 0 {
             let prefix = CString::new("file open failed:").unwrap();
             libc::perror(prefix.as_ptr())
         } else {
@@ -31,7 +35,7 @@ pub fn main() {
             path.as_ptr(),
             libc::O_RDWR,
         );
-        if *libc::__error() != 0 {
+        if *errno() != 0 {
             let prefix = CString::new("file open failed:").unwrap();
             libc::perror(prefix.as_ptr())
         } else {
@@ -60,5 +64,14 @@ pub fn main() {
 
         // copy file:
         file_copy::copy("file.nohole");
+
+        // shared file table:
+        shared_file_table::shared_file_table(true);
+        shared_file_table::shared_file_table(false);
+
+        // print file flag:
+        let path = CString::new("test.file").unwrap();
+        let fd = libc::open(path.as_ptr(), O_RDWR | O_APPEND | O_SYNC);
+        print_file_flag::print_file_flag(fd);
     }
 }

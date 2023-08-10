@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 use std::ffi::{CStr, CString};
 
+use crate::apue::errno;
+
 pub fn error_info() {
     unsafe {
         println!(
@@ -10,7 +12,7 @@ pub fn error_info() {
                 .unwrap()
         );
 
-        *libc::__error() = libc::ENOENT;
+        *errno() = libc::ENOENT;
         let prefix = CString::new("ENOENT").unwrap();
         libc::perror(prefix.as_ptr())
     }

@@ -3,6 +3,7 @@ mod file_copy;
 mod hole_file;
 mod nohole_file;
 mod is_seekable;
+mod practice;
 mod print_file_flag;
 mod shared_file_table;
 
@@ -66,12 +67,16 @@ pub fn main() {
         file_copy::copy("file.nohole");
 
         // shared file table:
-        shared_file_table::shared_file_table(true);
-        shared_file_table::shared_file_table(false);
+        shared_file_table::shared_file_table(true, false);
+        shared_file_table::shared_file_table(false, false);
 
         // print file flag:
         let path = CString::new("test.file").unwrap();
         let fd = libc::open(path.as_ptr(), O_RDWR | O_APPEND | O_SYNC);
         print_file_flag::print_file_flag(fd);
+
+        // practice:
+        shared_file_table::shared_file_table(true, true);
+        practice::append_check();
     }
 }

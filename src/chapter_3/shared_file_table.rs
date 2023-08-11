@@ -2,9 +2,9 @@
 use libc::{c_uint, c_void, O_CREAT, O_TRUNC, O_WRONLY, F_DUPFD};
 use std::ffi::CString;
 
-use crate::apue::FILE_MODE;
+use crate::{apue::FILE_MODE, chapter_3::practice::my_dup2};
 
-pub fn shared_file_table(shared: bool) {
+pub fn shared_file_table(shared: bool, use_my_dup: bool) {
     unsafe {
         const BUFFER_SIZE: usize = 4096;
 
@@ -23,8 +23,12 @@ pub fn shared_file_table(shared: bool) {
             panic!("open file `{}` failed.", file)
         }
         let fd2 = if shared {
-            // libc::dup(fd1)
-            libc::fcntl(fd1, F_DUPFD, 0)
+            if use_my_dup {
+                // libc::dup(fd1)
+                libc::fcntl(fd1, F_DUPFD, 0)
+            } else {
+                my_dup2(fd1, 3)
+            }
         } else {
             libc::open(path.as_ptr(), O_WRONLY)
         };
